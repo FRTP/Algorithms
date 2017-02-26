@@ -1,0 +1,5 @@
+# JetBrains IDEA local directory
+.idea/
+
+# Data directory
+data/**
