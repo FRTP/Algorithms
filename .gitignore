@@ -1,5 +1,11 @@
 # JetBrains IDEA local directory
 .idea/
 
-# Data directory
-data/**
+# Twitter data directory
+src/twitter/data/
+
+#IPython checkpoints
+**/.ipynb_checkpoints/
+
+#Python trash
+**/__pycache__/
