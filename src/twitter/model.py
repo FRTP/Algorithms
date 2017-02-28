@@ -9,15 +9,15 @@ def build_model(classifier):
     stops = set(stopwords.words("english"))
 
     pipe_params = {
-        'clf__class_weight': 'balanced'
-        , 'clf__random_state': 42
-        , 'tfidf__norm': 'l2'
-        , 'tfidf__use_idf': True
-        , 'vect__max_df': .7
-        , 'vect__max_features': 10000
-        , 'vect__ngram_range': (1, 2)
-        , 'vect__strip_accents': 'unicode'
-        , 'vect__stop_words': stops
+        'clf__class_weight': 'balanced',
+        'clf__random_state': 42,
+        'tfidf__norm': 'l2',
+        'tfidf__use_idf': True,
+        'vect__max_df': .7,
+        'vect__max_features': 10000,
+        'vect__ngram_range': (1, 2),
+        'vect__strip_accents': 'unicode',
+        'vect__stop_words': stops
     }
 
     pipeline = Pipeline([
