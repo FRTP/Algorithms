@@ -1,14 +1,9 @@
-import re
 import string
 
 from sklearn.base import BaseEstimator, TransformerMixin
 
 
 class TextCleaner(BaseEstimator, TransformerMixin):
-    _numeric = re.compile("(\$)?\d+([\.,]\d+)*")
-    _links = re.compile(
-        "http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|"
-        "[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+")
     _trans_table = str.maketrans({key: None for key in string.punctuation})
 
     def clean_text(self, tokens):

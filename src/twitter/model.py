@@ -1,8 +1,9 @@
 from nltk.corpus import stopwords
-from preprocessing import TextCleaner
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.pipeline import Pipeline
+
+from preprocessing import TextCleaner
 
 
 def build_model(classifier):
