@@ -5,8 +5,6 @@ from sklearn.pipeline import Pipeline
 
 from preprocessing.text_cleaner import TextCleaner
 
-import logging
-
 
 def build_model():
     clf_class = ExtraTreesClassifier
@@ -35,7 +33,5 @@ def build_model():
     ])
 
     pipeline.set_params(**pipe_params)
-
-    logging.info("built model")
 
     return pipeline

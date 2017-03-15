@@ -3,7 +3,7 @@ import pandas as pd
 from time import time
 from sklearn.model_selection import train_test_split, cross_val_score
 
-from tools import plot_significant_features
+from tools.tools import plot_significant_features
 
 # from models.baseline_model import build_model
 from models.baseline_model import build_model

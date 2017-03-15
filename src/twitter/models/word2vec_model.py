@@ -1,6 +1,4 @@
-import logging
-
-from sklearn.neural_network import MLPClassifier
+# from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.pipeline import Pipeline
 
@@ -11,27 +9,22 @@ from models.word2vec import Word2VecAvarager
 def build_model(n_dim=25):
     w2v_filename = "data/glove.twitter.27B/word2vec.twitter.27B.{}d.txt".format(n_dim)
 
-    classifier = ExtraTreesClassifier()
-
-    # choosing w2v model dimensions (25, 50, 100, 200)
-    n_dim = 100
-    w2v_filename = "data/glove.twitter.27B/word2vec.twitter.27B.{}d.txt".format(n_dim)
-    s2a = Word2VecAvarager(w2v_filename)
-    X = s2a.fit_transform(X)
-
-    # stops = set(stopwords.words("english"))
+    clf_class = ExtraTreesClassifier
+    # clf_class = MLPClassifier((30, 30))
 
     pipe_params = {
-        'transformer__filename': w2v_filename,
-        'clf__class_weight': 'balanced',
-        'clf__n_estimators': 300,
-        'clf__random_state': 42,
+        # 'clf__n_jobs': -1,
+        # 'clf__n_estimators': 300,
+        # 'clf__class_weight': 'balanced',
+        # 'clf__random_state': 42,
     }
 
     pipeline = Pipeline([
-        ('clf', classifier),
+        ('tknz', Tokenizer()),
+        ('w2v', Word2VecAvarager(w2v_filename)),
+        ('clf', clf_class),
     ])
 
-    logging.info("built model")
+    pipeline.set_params(**pipe_params)
 
-    return MLPClassifier(hidden_layer_sizes=(30, 30))
+    return pipeline

@@ -1,5 +1,7 @@
 from inspect import getsourcelines
 
+from sklearn.pipeline import Pipeline
+
 
 class SmartPipeline:
     def __init__(self):
