@@ -11,7 +11,6 @@ class Word2VecAvarager(BaseEstimator, TransformerMixin):
     def __init__(self, filename):
         logging.info("Loading Word2Vec ...")
         self.wv = Word2Vec.load_word2vec_format(filename)
-        logging.info("done")
         self.wv.init_sims(replace=True)
 
     def word_averaging(self, words):
