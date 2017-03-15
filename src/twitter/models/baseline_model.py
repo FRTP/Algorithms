@@ -3,13 +3,19 @@ from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.pipeline import Pipeline
 
-from preprocessing import TextCleaner
+from preprocessing.text_cleaner import TextCleaner
+
+import logging
 
 
-def build_model(classifier):
+def build_model():
+    clf_class = ExtraTreesClassifier
+
     stops = set(stopwords.words("english"))
 
     pipe_params = {
+        'clf__n_jobs': -1,
+        'clf__n_estimators': 300,
         'clf__class_weight': 'balanced',
         'clf__random_state': 42,
         'tfidf__norm': 'l2',
@@ -25,14 +31,11 @@ def build_model(classifier):
         ('cleantxt', TextCleaner()),
         ('vect', CountVectorizer()),
         ('tfidf', TfidfTransformer()),
-        ('clf', classifier),
+        ('clf', clf_class()),
     ])
 
     pipeline.set_params(**pipe_params)
 
+    logging.info("built model")
+
     return pipeline
-
-
-def build_simple_model():
-    classifier = ExtraTreesClassifier(n_jobs=-1, n_estimators=500)
-    return build_model(classifier)

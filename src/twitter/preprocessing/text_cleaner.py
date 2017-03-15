@@ -1,6 +1,7 @@
 import string
 
 from sklearn.base import BaseEstimator, TransformerMixin
+from preprocessing.common_regex import re_number, re_url
 
 
 class TextCleaner(BaseEstimator, TransformerMixin):
@@ -8,9 +9,9 @@ class TextCleaner(BaseEstimator, TransformerMixin):
 
     def clean_text(self, tokens):
         for i, w in enumerate(tokens):
-            if TextCleaner._numeric.match(w):
+            if re_number.match(w):
                 tokens[i] = w.translate(TextCleaner._trans_table)
-            elif TextCleaner._links.match(w):
+            elif re_url.match(w):
                 tokens[i] = '_LINK_'
             else:
                 continue
