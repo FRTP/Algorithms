@@ -33,7 +33,7 @@ class Word2VecAvarager(BaseEstimator, TransformerMixin):
             return np.zeros(self.wv.layer1_size, )
 
         vec = np.array(vecs).sum(axis=0)
-        # vec = unitvec(vec).astype(np.float32)
+        vec = unitvec(vec).astype(np.float32)
         return vec
 
     def transform(self, X):
