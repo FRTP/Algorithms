@@ -25,8 +25,8 @@ class TextCleaner(BaseEstimator, TransformerMixin):
         return X
 
     def fit_transform(self, X, y=None, **kwargs):
-        return self.transform(X)
+        return self.fit(X).transform(X)
 
     def fit(self, X, y=None):
-        self.transform(X)
+        # self.transform(X)
         return self

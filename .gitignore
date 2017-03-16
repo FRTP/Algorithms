@@ -3,7 +3,7 @@
 
 # Twitter data directory
 src/twitter/data/
-!src/twitter/data/wiki.md
+src/twitter/dumps/
 
 #IPython checkpoints
 **/.ipynb_checkpoints/

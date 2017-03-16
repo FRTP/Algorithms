@@ -7,13 +7,21 @@ from gensim.matutils import unitvec
 from sklearn.base import BaseEstimator, TransformerMixin
 
 
+def load_model(filename):
+        wv = Word2Vec.load_word2vec_format(filename)
+        wv.init_sims(replace=True)
+        return wv
+
+
 class Word2VecAvarager(BaseEstimator, TransformerMixin):
-    def __init__(self, filename):
+    def __init__(self, filename=None, wv=None):
         self.filename = filename
-        self.wv = None
+        self.wv = wv
 
     def load(self):
         if self.wv is None:
+            if self.filename is None:
+                raise Exception("missing wv and filename field")
             self.wv = Word2Vec.load_word2vec_format(self.filename)
             self.wv.init_sims(replace=True)
 
@@ -45,8 +53,8 @@ class Word2VecAvarager(BaseEstimator, TransformerMixin):
         return np.array(X_vectors)
 
     def fit_transform(self, X, y=None, **kwargs):
-        return self.transform(X)
+        return self.fit(X).transform(X)
 
     def fit(self, X, y=None):
-        self.transform(X)
+        # self.transform(X)
         return self

@@ -4,7 +4,7 @@ re_money = re.compile(r"\$( )?\d+([\.,]\d+)*[mMkKbB]?")
 
 re_number = re.compile(r"\d+([\.,]\d+)*")
 
-re_url = re.compile(r"(http[s]?|ftp)://[\w/$.?#]+.?\w*$@[\w.1-9]*")
+re_url = re.compile(r"(http[s]?|ftp)://[\w/$.?#]+.?\w*@?[\w.1-9]*")
 
 
 re_hashtag = re.compile(r"#(\w+)")

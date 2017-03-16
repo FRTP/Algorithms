@@ -38,14 +38,14 @@ class Replacer(BaseEstimator, TransformerMixin):
     def transform(self, X):
         X_vectors = []
         for x in X:
-            x_new = self.single_transform(x).lower()
+            x_new = self.single_transform(x)
             X_vectors.append(x_new)
 
         return np.array(X_vectors)
 
     def fit_transform(self, X, y=None, **kwargs):
-        return self.transform(X)
+        return self.fit(X).transform(X)
 
     def fit(self, X, y=None):
-        self.transform(X)
+        # self.transform(X)
         return self
