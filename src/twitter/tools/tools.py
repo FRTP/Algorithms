@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix, accuracy_score
+from sklearn.metrics import confusion_matrix
+import numpy as np
 
 
 def print_significant_features(pipeline=None, n=20):
@@ -46,14 +47,16 @@ def plot_significant_features(pipeline=None, n=20, file_name=None):
         plt.close()
 
 
-def plot_confusion_matrix(y_true, y_pred, target_names, title='Confusion matrix', cmap=plt.cm.Blues):
+def plot_confusion_matrix(y_true, y_pred, target_names,
+                          title='Confusion matrix',
+                          cmap=plt.cm.Blues):
     cm = confusion_matrix(y_true, y_pred)
     cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
 
-    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.imshow(cm_normalized, interpolation='nearest', cmap=cmap)
     plt.title(title)
     plt.colorbar()
-    tick_marks = np.arange(len(my_tags))
+    tick_marks = np.arange(len(target_names))
     plt.xticks(tick_marks, target_names, rotation=45)
     plt.yticks(tick_marks, target_names)
     plt.tight_layout()

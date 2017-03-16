@@ -9,28 +9,35 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 class Word2VecAvarager(BaseEstimator, TransformerMixin):
     def __init__(self, filename):
-        logging.info("Loading Word2Vec ...")
-        self.wv = Word2Vec.load_word2vec_format(filename)
-        self.wv.init_sims(replace=True)
+        self.filename = filename
+        self.wv = None
+
+    def load(self):
+        if self.wv is None:
+            self.wv = Word2Vec.load_word2vec_format(self.filename)
+            self.wv.init_sims(replace=True)
 
     def word_averaging(self, words):
-        mean = []
+        vecs = []
 
         for word in words:
             if isinstance(word, np.ndarray):
-                mean.append(word)
+                vecs.append(word)
             elif word in self.wv.wv.vocab:
-                mean.append(self.wv.wv.syn0norm[self.wv.wv.vocab[word].index])
+                id = self.wv.wv.vocab[word].index
+                vecs.append(self.wv.wv.syn0norm[id])
 
-        if not mean:
-            logging.warning("cannot compute similarity with no input %s", words)
+        if not vecs:
+            logging.warning("cannot compute similarity : %s", words)
             # FIXME: remove these examples in pre-processing
             return np.zeros(self.wv.layer1_size, )
 
-        mean = unitvec(np.array(mean).mean(axis=0)).astype(np.float32)
-        return mean
+        vec = np.array(vecs).sum(axis=0)
+        # vec = unitvec(vec).astype(np.float32)
+        return vec
 
     def transform(self, X):
+        self.load()
         X_vectors = []
         for tokens in X:
             X_vectors.append(self.word_averaging(tokens))

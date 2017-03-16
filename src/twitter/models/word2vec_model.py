@@ -1,16 +1,19 @@
-# from sklearn.neural_network import MLPClassifier
-from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.neural_network import MLPClassifier
+# from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.pipeline import Pipeline
 
-from preprocessing.tokenizer from Tokenizer
+from preprocessing.replacer import Replacer
+from preprocessing.tweet_tokenizer import TweetTokenizerTransformer
+
 from models.word2vec import Word2VecAvarager
 
 
 def build_model(n_dim=25):
-    w2v_filename = "data/glove.twitter.27B/word2vec.twitter.27B.{}d.txt".format(n_dim)
+    w2v_filename = ("data/glove.twitter.27B/"
+                    "word2vec.twitter.27B.{}d.txt".format(n_dim))
 
-    clf_class = ExtraTreesClassifier
-    # clf_class = MLPClassifier((30, 30))
+    # clf = ExtraTreesClassifier()
+    clf = MLPClassifier((10, 10))
 
     pipe_params = {
         # 'clf__n_jobs': -1,
@@ -19,10 +22,13 @@ def build_model(n_dim=25):
         # 'clf__random_state': 42,
     }
 
+    # loading here in order not to load over and over
+
     pipeline = Pipeline([
-        ('tknz', Tokenizer()),
-        ('w2v', Word2VecAvarager(w2v_filename)),
-        ('clf', clf_class),
+        ('replace', Replacer()),
+        ('tokenize', TweetTokenizerTransformer()),
+        ('w2v', Word2VecAvarager(filename=w2v_filename)),
+        ('clf', clf),
     ])
 
     pipeline.set_params(**pipe_params)
