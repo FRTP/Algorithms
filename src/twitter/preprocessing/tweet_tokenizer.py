@@ -1,12 +1,12 @@
 import numpy as np
-import nltk
-from nltk.corpus import stopwords
 from nltk.tokenize import TweetTokenizer
 
 from sklearn.base import BaseEstimator, TransformerMixin
 
 
-class TweetTokenizerTransformer(BaseEstimator, TransformerMixin, TweetTokenizer):
+class TweetTokenizerTransformer(BaseEstimator,
+                                TransformerMixin,
+                                TweetTokenizer):
     def transform(self, X):
         X_vectors = []
         for x in X:

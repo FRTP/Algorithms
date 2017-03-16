@@ -1,4 +1,5 @@
 from sklearn.neural_network import MLPClassifier
+# from sklearn.linear_model import LogisticRegression
 # from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.pipeline import Pipeline
 
@@ -13,7 +14,8 @@ def build_model(n_dim=25):
                     "word2vec.twitter.27B.{}d.txt".format(n_dim))
 
     # clf = ExtraTreesClassifier()
-    clf = MLPClassifier((10, 10))
+    clf = MLPClassifier((10, ))
+    # clf = LogisticRegression()
 
     pipe_params = {
         # 'clf__n_jobs': -1,

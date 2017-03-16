@@ -4,7 +4,7 @@ import numpy as np
 
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from preprocessing.common_regex import *
+from preprocessing import common_regex as cre
 from preprocessing.dictionary import emo
 
 
@@ -16,17 +16,17 @@ class Replacer(BaseEstimator, TransformerMixin):
 
         self.patterns = [
             # should be done before others
-            (re_allcaps, allcaps_repl),
-            (re_from_list(heart_list), heart_repl),
-            (re_from_list(smile_list), smile_repl),
-            (re_from_list(sadface_list), heart_repl),
-            (re_money, money_repl),
-            (re_number, number_repl),
-            (re_url, url_repl),
-            (re_hashtag, hashtag_repl),
-            (re_user, user_repl),
-            (re_repeat, repeat_repl),
-            (re_sign_repeat, sign_repeat_repl),
+            (cre.re_allcaps, cre.allcaps_repl),
+            (cre.re_from_list(heart_list), cre.heart_repl),
+            (cre.re_from_list(smile_list), cre.smile_repl),
+            (cre.re_from_list(sadface_list), cre.heart_repl),
+            (cre.re_money, cre.money_repl),
+            (cre.re_number, cre.number_repl),
+            (cre.re_url, cre.url_repl),
+            (cre.re_hashtag, cre.hashtag_repl),
+            (cre.re_user, cre.user_repl),
+            (cre.re_repeat, cre.repeat_repl),
+            (cre.re_sign_repeat, cre.sign_repeat_repl),
         ]
 
     def single_transform(self, text):
