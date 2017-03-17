@@ -88,9 +88,9 @@ class MemoDecorator(BaseEstimator, TransformerMixin):
 
     def get_real_params(self):
         attrs = [attr for attr in dir(self)
-                 if not callable(getattr(self, attr))
-                 and not attr.upper() == attr
-                 and not attr.startswith("__")]
+                 if not callable(getattr(self, attr)) and
+                 not attr.upper() == attr and
+                 not attr.startswith("__")]
         return dict([(attr, getattr(self, attr)) for attr in attrs])
 
     def set_real_params(self, **params):
@@ -117,7 +117,7 @@ class MemoDecorator(BaseEstimator, TransformerMixin):
         class_name = self.__class__.__name__
         return '%s(%s)' % (class_name,
                            _pprint(self.get_params(deep=False),
-                                   offset=len(class_name),),)
+                                   offset=len(class_name), ),)
 
     def __str__(self):
         return self.class_name
