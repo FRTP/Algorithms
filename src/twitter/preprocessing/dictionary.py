@@ -1,4 +1,4 @@
-emiticons = dict([
+emoticons = dict([
     # Emoticons
     ('SMILE', [':-)', ':)', '(:', '(-:', ]),
     ('LAUGH', [':-D', ':D', 'X-D', 'XD', 'xD', ]),

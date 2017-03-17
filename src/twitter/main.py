@@ -19,7 +19,7 @@ def main():
     y = df['airline_sentiment']
     y = y.map({'negative': -1, 'neutral': 0, 'positive': 1}).values
 
-    model = build_model()
+    model = build_model(n_dim=200)
 
     t0 = time()
 
