@@ -1,7 +1,7 @@
 import pandas as pd
 
 from time import time
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import cross_val_score, StratifiedKFold
 
 # from tools.tools import plot_significant_features
 
@@ -12,7 +12,7 @@ import logging
 
 
 def main():
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
 
     df = pd.read_csv('data/Tweets.csv')
     X = df['text'].values
@@ -23,11 +23,13 @@ def main():
 
     t0 = time()
 
-    scores = cross_val_score(model, X, y)
+    # using determined test_splits for smart dump/load
+    cv = StratifiedKFold(n_splits=3, random_state=42)
+    scores = cross_val_score(model, X, y, cv=cv)
+
     score = scores.mean()
-    print("Score:{}".format(score))
-    # plot_significant_features(pipeline=model,
-    #                           file_name="sentiment_feature_importance.png")
+    std = scores.std()
+    print("Score: %.4f +- %.4f" % (score, std))
     print("Total done in %0.3fs" % (time() - t0))
 
 

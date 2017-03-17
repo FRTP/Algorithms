@@ -5,7 +5,7 @@ import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 
 from preprocessing import common_regex as cre
-from preprocessing.dictionary import emo
+from preprocessing.dictionary import emoticons as emo
 
 
 class Replacer(BaseEstimator, TransformerMixin):
@@ -42,9 +42,6 @@ class Replacer(BaseEstimator, TransformerMixin):
             X_vectors.append(x_new)
 
         return np.array(X_vectors)
-
-    def fit_transform(self, X, y=None, **kwargs):
-        return self.fit(X).transform(X)
 
     def fit(self, X, y=None):
         # self.transform(X)

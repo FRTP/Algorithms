@@ -8,9 +8,9 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 
 def load_model(filename):
-        wv = Word2Vec.load_word2vec_format(filename)
-        wv.init_sims(replace=True)
-        return wv
+    wv = Word2Vec.load_word2vec_format(filename)
+    wv.init_sims(replace=True)
+    return wv
 
 
 class Word2VecAvarager(BaseEstimator, TransformerMixin):
@@ -36,7 +36,8 @@ class Word2VecAvarager(BaseEstimator, TransformerMixin):
                 vecs.append(self.wv.wv.syn0norm[id])
 
         if not vecs:
-            logging.warning("cannot compute similarity : %s", words)
+            logging.getLogger(self.__class__.__name__).warning(
+                "cannot compute similarity : %s", words)
             # FIXME: remove these examples in pre-processing
             return np.zeros(self.wv.layer1_size, )
 
@@ -52,9 +53,5 @@ class Word2VecAvarager(BaseEstimator, TransformerMixin):
 
         return np.array(X_vectors)
 
-    def fit_transform(self, X, y=None, **kwargs):
-        return self.fit(X).transform(X)
-
     def fit(self, X, y=None):
-        # self.transform(X)
         return self

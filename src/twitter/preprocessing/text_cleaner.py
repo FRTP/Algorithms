@@ -5,12 +5,15 @@ from preprocessing.common_regex import re_number, re_url
 
 
 class TextCleaner(BaseEstimator, TransformerMixin):
-    _trans_table = str.maketrans({key: None for key in string.punctuation})
+
+    def __init__(self):
+        nones = [None for _ in string.punctuation]
+        self.trans_table = string.punctuation.maketrans(nones)
 
     def clean_text(self, tokens):
         for i, w in enumerate(tokens):
             if re_number.match(w):
-                tokens[i] = w.translate(TextCleaner._trans_table)
+                tokens[i] = w.translate(self.trans_table)
             elif re_url.match(w):
                 tokens[i] = '_LINK_'
             else:
@@ -19,13 +22,10 @@ class TextCleaner(BaseEstimator, TransformerMixin):
 
     def transform(self, X):
         for i, item in enumerate(X):
-            tokenized = item.split()
-            X[i] = " ".join(self.clean_text(tokenized))
+            tokens = item.split()
+            X[i] = " ".join(self.clean_text(tokens))
 
         return X
-
-    def fit_transform(self, X, y=None, **kwargs):
-        return self.fit(X).transform(X)
 
     def fit(self, X, y=None):
         # self.transform(X)

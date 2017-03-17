@@ -2,12 +2,13 @@ from sklearn.neural_network import MLPClassifier
 # from sklearn.linear_model import LogisticRegression
 # from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.pipeline import Pipeline
-from gensim.models import Word2Vec
 
 from preprocessing.replacer import Replacer
 from preprocessing.tweet_tokenizer import TweetTokenizerTransformer
 
 from models.word2vec import Word2VecAvarager
+
+from tools.memorize_decorator import MemoDecorator as MD
 
 
 def build_model(n_dim=25):
@@ -18,27 +19,24 @@ def build_model(n_dim=25):
     clf = MLPClassifier()
     # clf = LogisticRegression()
 
-    # loading w2v once to avoid multiple loads
-    wv = Word2Vec.load_word2vec_format(w2v_filename)
-    wv.init_sims(replace=True)
-
     pipe_params = {
+        'tokenize__memorize_fit': False,
+        'replace__memorize_fit': False,
         'w2v__filename': w2v_filename,
-        'w2v__wv': wv,
+        'w2v__memorize_fit': False,
+        # 'w2v__wv': wv,
         # 'clf__n_jobs': -1,
         # 'clf__n_estimators': 300,
         # 'clf__class_weight': 'balanced',
-        # 'clf__random_state': 42,
+        'clf__random_state': 42,
         'clf__hidden_layer_sizes': (10, ),
     }
 
-    # loading here in order not to load over and over
-
     pipeline = Pipeline([
-        ('replace', Replacer()),
-        ('tokenize', TweetTokenizerTransformer()),
-        ('w2v', Word2VecAvarager()),
-        ('clf', clf),
+        ('replace', MD(Replacer())),
+        ('tokenize', MD(TweetTokenizerTransformer())),
+        ('w2v', MD(Word2VecAvarager())),
+        ('clf', MD(clf)),
     ])
 
     pipeline.set_params(**pipe_params)

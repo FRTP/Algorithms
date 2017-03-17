@@ -25,9 +25,6 @@ class Tokenizer(BaseEstimator, TransformerMixin):
 
         return np.array(X_vectors)
 
-    def fit_transform(self, X, y=None, **kwargs):
-        return self.fit(X).transform(X)
-
     def fit(self, X, y=None):
         # self.transform(X)
         return self
