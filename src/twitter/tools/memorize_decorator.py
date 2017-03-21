@@ -37,6 +37,7 @@ class MemoDecorator(BaseEstimator, TransformerMixin):
         source_lines = getsourcelines(self.algorithm.__class__)
         dict_to_hash = {
             'algo_src_lines': source_lines,
+            'algo_params': self.algorithm.get_params(),
             'algo_args': params,
             'X': X,
             'kwargs': kwargs,

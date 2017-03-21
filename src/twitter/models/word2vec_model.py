@@ -2,6 +2,7 @@ from sklearn.neural_network import MLPClassifier
 # from sklearn.linear_model import LogisticRegression
 # from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 from preprocessing.replacer import Replacer
 from preprocessing.tweet_tokenizer import TweetTokenizerTransformer
@@ -28,14 +29,16 @@ def build_model(n_dim=25):
         # 'clf__n_jobs': -1,
         # 'clf__n_estimators': 300,
         # 'clf__class_weight': 'balanced',
+        # 'scale': ,
         'clf__random_state': 42,
-        'clf__hidden_layer_sizes': (10, ),
+        'clf__hidden_layer_sizes': (40, 40),
     }
 
     pipeline = Pipeline([
         ('replace', MD(Replacer())),
         ('tokenize', MD(TweetTokenizerTransformer())),
         ('w2v', MD(Word2VecAvarager())),
+        # ('scale', MD(StandardScaler())),
         ('clf', MD(clf)),
     ])
 

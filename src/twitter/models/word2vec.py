@@ -41,7 +41,7 @@ class Word2VecAvarager(BaseEstimator, TransformerMixin):
             # FIXME: remove these examples in pre-processing
             return np.zeros(self.wv.layer1_size, )
 
-        vec = np.array(vecs).sum(axis=0)
+        vec = np.array(vecs).mean(axis=0)
         vec = unitvec(vec).astype(np.float32)
         return vec
 

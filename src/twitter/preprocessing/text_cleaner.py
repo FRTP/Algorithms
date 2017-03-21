@@ -8,7 +8,8 @@ class TextCleaner(BaseEstimator, TransformerMixin):
 
     def __init__(self):
         nones = [None for _ in string.punctuation]
-        self.trans_table = string.punctuation.maketrans(nones)
+        d = dict(zip(string.punctuation, nones))
+        self.trans_table = string.punctuation.maketrans(d)
 
     def clean_text(self, tokens):
         for i, w in enumerate(tokens):
