@@ -2,7 +2,7 @@ from sklearn.neural_network import MLPClassifier
 # from sklearn.linear_model import LogisticRegression
 # from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
+# from sklearn.preprocessing import StandardScaler
 
 from preprocessing.replacer import Replacer
 from preprocessing.tweet_tokenizer import TweetTokenizerTransformer
