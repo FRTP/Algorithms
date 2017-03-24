@@ -1,8 +1,5 @@
 from sklearn.neural_network import MLPClassifier
-# from sklearn.linear_model import LogisticRegression
-# from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.pipeline import Pipeline
-# from sklearn.preprocessing import StandardScaler
 
 from preprocessing.replacer import Replacer
 from preprocessing.tweet_tokenizer import TweetTokenizerTransformer
@@ -16,9 +13,7 @@ def build_model(n_dim=25):
     w2v_filename = ("data/glove.twitter.27B/"
                     "word2vec.twitter.27B.{}d.txt".format(n_dim))
 
-    # clf = ExtraTreesClassifier()
     clf = MLPClassifier()
-    # clf = LogisticRegression()
 
     pipe_params = {
         'tokenize__memorize_fit': False,
