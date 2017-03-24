@@ -1,8 +1,5 @@
 from sklearn.ensemble import ExtraTreesClassifier
-from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline, FeatureUnion
-
-from preprocessing.text_cleaner import TextCleaner
 
 from tools.memorize_decorator import MemoDecorator as MD
 
