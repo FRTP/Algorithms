@@ -108,7 +108,6 @@ def traderFunction(X, w):
     -------
     Value of traderFunction.
     """
-
     return np.tanh(np.dot(X, w))
 
 
@@ -129,7 +128,8 @@ def updateFt(X, theta, T):
 
     for i in range(1, T+1):
         xt = [1]
-        xt.extend(X[i-1:i+m-2])
+        # xt.extend(X[i-1:i+M-2])
+        xt.extend(X[i:i+M])
         xt.append(Ft[i-1])
         Ft[i] = traderFunction(xt, theta)
 
@@ -164,17 +164,47 @@ def costFunction(X, Xn, theta):
     dFt = np.zeros((M+2, T+1))
     for i in range(1, T+1):
         xt = [1]
-        xt.extend(Xn[i-1:i+M-2])
+        # xt.extend(Xn[i-1:i+M-2])
+        xt.extend(Xn[i:i+M])
         xt.append(Ft[i-1])
         dFt[:, i] = (1 - traderFunction(xt, theta) ** 2) * \
-                    (xt + theta[M+2] * dFt[:, i-1])
+                    (xt + theta[-1] * dFt[:, i-1])
 
     dRtFt = -1. * miu * delta * np.sign(Ft[1:]-Ft[:T])
 
-    dRtFtt = miu * (X[M+1:T+M] + delta * np.sign(Ft[1:]-Ft[:T]))
+    dRtFtt = miu * (X[M:M+T] + delta * np.sign(Ft[1:] - Ft[:T]))
 
-    # TODO: prefix = ???
-    # TODO: grad = ???
+    # % prefix = repmat(subs(subs(dSdA,a,A),b,B), T, 1) / T +
+    #            subs(subs(dSdB,a,A),b,B) * 2*Ret/T;
+    #
+    # prefix = repmat((1/(- A^2 + B)^(1/2) + A^2/(B - A^2)^(3/2))/M, M, 1) +
+    #          (-A/(2*(B - A^2)^(3/2))) * 2 * Ret / M
+
+    A = np.sum(Ret) / T
+    B = np.sum(Ret ** 2) / T
+
+    prefix = np.tile((1 / np.sqrt(B - (A ** 2)) +
+                     (A ** 2) / ((B - (A ** 2)) ** (3/2))) / M, (M, 1)) + \
+                    (- A / (2 * (B - (A ** 2)) ** (3/2))) * 2 * Ret / M
+    print(prefix)
+    print(prefix.shape)
+
+    # grad = np.sum(np.tile(prefix.T, (M+2, 1)).dot(
+    #                 (np.tile(dRtFt.T, (M+2, 1))).dot(dFt[:, 1:]) +
+    #                 np.tile(dRtFtt.T, (M+2, 1)).dot(dFt[:, :T]), 2))
+
+    print(np.tile(prefix.T, (M+2, 1)).shape)
+    print(np.tile(dRtFt.T, (M+2, 1)).dot(dFt[:, 1:].T).shape)
+    print(np.tile(dRtFtt.T, (M+2, 1)).dot(dFt[:, :T].T).shape)
+
+    grad = np.sum(np.tile(prefix.T, (M+2, 1)).dot(
+                    np.tile(dRtFt.T, (M+2, 1)).dot(dFt[:, 1:].T) +
+                    np.tile(dRtFtt.T, (M+2, 1)).dot(dFt[:, :T].T)
+                                                  ), axis=2)
+
+    grad = -1 * grad
+
+    return J, grad
 
 
 if __name__ == '__main__':
