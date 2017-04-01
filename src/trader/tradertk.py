@@ -2,52 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-#     with open('retDAX.txt', 'r') as f:
-#         tmp = f.read()
-#     retDAX = list(map(lambda x: float(x), tmp.split()))
-#
-#     with open('DAX.txt', 'r') as f:
-#         tmp = f.read()
-#     DAX = list(map(lambda x: float(x), tmp.split()))
-#
-#     M = 10
-#     T = 500  # The number of time series inputs to the trader
-#     N = 100
-#
-#     initial_theta = np.ones((M+2, 1))  # initialize theta
-#
-#     X = retDAX
-#
-#     Xn = featureNormalize(X)
-#
-#     print(Xn)
-
-
-def featureNormalize(X):
-    """Returns a normalized version of X where the mean value of each feature
-    is 0 and the standard deviation is 1. This is often a good preprocessing
-    step to do when working with learning algorithms.
-
-    Parameters
-    ----------
-    X : list
-
-    Returns
-    -------
-    X_norm : list
-        Normalized version of X.
-    """
-
-    m = len(X)
-    mu = np.mean(X)
-    sigma = np.std(X)
-    X_norm = (X - mu) / sigma
-
-    return X_norm
-
-
 def sharpRatio(Ret):
-    """Calculate sharpRatio.
+    """
+    Calculate sharpRatio.
 
     Parameters
     ----------
@@ -58,13 +15,14 @@ def sharpRatio(Ret):
     -------
     float
         sharpRatio at time step t.
-    """
 
+    """
     return np.mean(Ret) / np.std(Ret)
 
 
 def rewardFunction(X, miu, delta, Ft, M):
-    """Calculate reward at time step t.
+    """
+    Calculate reward at time step t.
 
     Parameters
     ----------
@@ -85,8 +43,8 @@ def rewardFunction(X, miu, delta, Ft, M):
         List of returns till time t.
     sharpRatio(Ret) : float
         Sharp ratio at time step t.
-    """
 
+    """
     T = len(Ft) - 1
 
     # The return at time t, considering the decision F_{t-1}
@@ -96,7 +54,8 @@ def rewardFunction(X, miu, delta, Ft, M):
 
 
 def traderFunction(X, w):
-    """Represents the trading position at time t. Holdings at period t.
+    """
+    Represents the trading position at time t. Holdings at period t.
     Three types of positions that can be held: `long` (> 0),
     `short` (< 0), `neutral` (= 0).
 
@@ -107,12 +66,14 @@ def traderFunction(X, w):
     Returns
     -------
     Value of traderFunction.
+
     """
     return np.tanh(np.dot(X, w))
 
 
 def updateFt(X, theta, T):
-    """Update holdings at time steps t.
+    """
+    Update holdings at time steps t.
 
     Parameters
     ----------
@@ -122,6 +83,7 @@ def updateFt(X, theta, T):
     Returns
     -------
     Updated holdings at time steps t.
+
     """
     M = len(theta) - 2
     Ft = np.zeros(T+1)
@@ -146,7 +108,7 @@ def costFunction(X, Xn, theta):
     Returns
     -------
     J : float
-    grad :
+    grad : list
 
     """
     miu = 1
