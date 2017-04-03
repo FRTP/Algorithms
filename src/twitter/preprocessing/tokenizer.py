@@ -6,7 +6,8 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 
 class Tokenizer(BaseEstimator, TransformerMixin):
-    def tokenize(self, text):
+    @staticmethod
+    def tokenize(text):
         tokens = []
         for sent in nltk.sent_tokenize(text, language='english'):
             for word in nltk.word_tokenize(sent, language='english'):

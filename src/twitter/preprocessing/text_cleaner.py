@@ -1,7 +1,7 @@
 import string
 
 from sklearn.base import BaseEstimator, TransformerMixin
-from preprocessing.common_regex import re_number, re_url
+from src.twitter.preprocessing.common_regex import re_number, re_url
 
 
 class TextCleaner(BaseEstimator, TransformerMixin):

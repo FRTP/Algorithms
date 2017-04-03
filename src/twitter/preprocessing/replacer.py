@@ -4,8 +4,8 @@ import numpy as np
 
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from preprocessing import common_regex as cre
-from preprocessing.dictionary import emoticons as emo
+from src.twitter.preprocessing import common_regex as cre
+from src.twitter.preprocessing.dictionary import emoticons as emo
 
 
 class Replacer(BaseEstimator, TransformerMixin):
