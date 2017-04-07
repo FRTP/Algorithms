@@ -23,37 +23,84 @@ def sharpRatio(Ret):
         return np.mean(Ret) / np.std(Ret)
 
 
-def rewardFunction(X, miu, delta, Ft, M):
+def get_rewards(t_input, r_input, F_input, miu_input, delta_input):
     """
-    Calculate reward at time step t.
+    Calculate rewards till time step t_input.
 
     Parameters
     ----------
-    X : list
-        List of returns at time steps t.
-    miu : float
+    t_input : int
+        Time step.
+    r_input : list
+        List of returns till time step t_input.
+    F_input : list
+        Holdings at time steps.
+    miu_input : float
         Maximum possible number of shares per transaction.
-    delta : float
+    delta_input : float
         The cost for a transaction at period t.
-    Ft : list
-        Holdings at time steps t.
-    M : int
-        The number of time series inputs to the trader.
 
     Returns
     -------
-    Ret : list
-        List of returns till time t.
-    sharpRatio(Ret) : float
-        Sharp ratio at time step t.
+    ans : list
+        List of Rewards till time t.
+    s_ratio : float
+        Sharp ratio at time step t_input.
 
     """
-    T = len(Ft) - 1
+    ans = [0]
 
-    # The return at time t, considering the decision F_{t-1}
-    Ret = miu * (Ft[:T] * X[M:M+T] - delta * np.abs(Ft[1:] - Ft[:T]))
+    tmp = miu_input * ((F_input[:t_input-1] * r_input[1:t_input]) -
+                       (delta_input * abs(F_input[1:t_input] -
+                        F_input[:t_input-1])))
 
-    return Ret, sharpRatio(Ret)
+    ans.extend(tmp)
+
+    s_ratio = sharpRatio(ans[:t_input])
+
+    return ans, s_ratio
+
+
+def build_x(maxT_input, M_input, r_input, w_input):
+    """
+    Build matrix X of windows x_t. Size of every window is (M_input + 3).
+
+    Parameters
+    ----------
+    maxT_input : int
+        Maximum time step.
+
+    M_input : int
+        The number of time series inputs to the trader.
+
+    r_input : list
+        List of returns.
+
+    w_input : list
+        Weights.
+
+    Returns
+    -------
+    X_ans : array of lists
+        Array of windows x_t.
+
+    """
+    X_ans = np.zeros((maxT_input, M_input + 3))
+
+    F_t_1 = 0
+    X_ans[0] = np.concatenate(([1], list(reversed(r_input[:1])),
+                               np.zeros(M_input), [F_t_1]))
+
+    for time_step in range(1, M_input + 1):
+        X_ans[time_step] = np.concatenate(([1], list(reversed(
+                           r_input[:time_step + 1])),
+                           np.zeros(M_input - time_step),
+                           [traderFunction(w_input, X_ans[time_step - 1])]))
+    for time_step in range(M_input + 1, maxT_input):
+        X_ans[time_step] = np.concatenate(([1], list(reversed(
+                           r_input[time_step - M_input:time_step + 1])),
+                           [traderFunction(w_input, X_ans[time_step - 1])]))
+    return X_ans
 
 
 def traderFunction(X, w):
@@ -102,7 +149,8 @@ def updateFt(X, theta, T):
 
 
 def costFunction(X, Xn, theta):
-    """Calculate costFunction.
+    """
+    Calculate costFunction.
 
     Parameters
     ----------
