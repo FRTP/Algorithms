@@ -17,7 +17,10 @@ def sharpRatio(Ret):
         sharpRatio at time step t.
 
     """
-    return np.mean(Ret) / np.std(Ret)
+    if np.std(Ret) == 0:
+        return 0
+    else:
+        return np.mean(Ret) / np.std(Ret)
 
 
 def rewardFunction(X, miu, delta, Ft, M):
@@ -148,17 +151,18 @@ def costFunction(X, Xn, theta):
     prefix = np.tile((1 / np.sqrt(B - (A ** 2)) +
                      (A ** 2) / ((B - (A ** 2)) ** (3/2))) / M, (M, 1)) + \
                     (- A / (2 * (B - (A ** 2)) ** (3/2))) * 2 * Ret / M
-    print(prefix)
-    print(prefix.shape)
+    # print(prefix)
+    # print(prefix.shape)
 
     # grad = np.sum(np.tile(prefix.T, (M+2, 1)).dot(
     #                 (np.tile(dRtFt.T, (M+2, 1))).dot(dFt[:, 1:]) +
     #                 np.tile(dRtFtt.T, (M+2, 1)).dot(dFt[:, :T]), 2))
 
-    print(np.tile(prefix.T, (M+2, 1)).shape)
-    print(np.tile(dRtFt.T, (M+2, 1)).dot(dFt[:, 1:].T).shape)
-    print(np.tile(dRtFtt.T, (M+2, 1)).dot(dFt[:, :T].T).shape)
+    # print(np.tile(prefix.T, (M+2, 1)).shape)
+    # print(np.tile(dRtFt.T, (M+2, 1)).dot(dFt[:, 1:].T).shape)
+    # print(np.tile(dRtFtt.T, (M+2, 1)).dot(dFt[:, :T].T).shape)
 
+    # TODO: fix this
     grad = np.sum(np.tile(prefix.T, (M+2, 1)).dot(
                     np.tile(dRtFt.T, (M+2, 1)).dot(dFt[:, 1:].T) +
                     np.tile(dRtFtt.T, (M+2, 1)).dot(dFt[:, :T].T)
