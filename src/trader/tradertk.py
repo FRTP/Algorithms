@@ -103,6 +103,76 @@ def build_x(maxT_input, M_input, r_input, w_input):
     return X_ans
 
 
+def get_trader_func(X_input, M_input):
+    """
+    Last coordinates of X vectors.
+
+    """
+    return np.array(X_input)[:, M_input + 2]
+
+
+def get_grad_F_w(maxT_input, X_input, w_input):
+    """
+    Calculate gradient dF/dW.
+
+    """
+    dFt = np.zeros((maxT_input, len(X_input[0])))
+    dFt[0] = (1 - (traderFunction(X_input[0], w_input) ** 2)) * X_input[0]
+    for t in range(maxT_input):
+        dFt[t] = ((1 - (traderFunction(X_input[t], w_input) ** 2)) *
+                  (X_input[t] + (w_input[-1] * dFt[-1])))
+    return dFt
+
+
+def get_grad_S_w(maxT_input, rewards_input, r_input, F_input,
+                 miu_input, delta_input, dFt_input):
+    """
+    Calculate gradient dS/dW.
+
+    Parameters
+    ----------
+    maxT_input : int
+    rewards_input : list
+        List of Rewards.
+    r_input : list
+        List of returns.
+    F_input : list
+        List of values of trader function.
+    miu_input : int
+    delta_input : float
+    dFt_input : list
+        List of gradients dF/dW.
+
+    Returns
+    -------
+    grad : float
+        Calculated gradient.
+
+    """
+    A = sum(rewards_input[:maxT_input]) / maxT_input
+    B = sum(np.array(rewards_input[:maxT_input]) ** 2) / maxT_input
+
+    dSdA = (1 / np.sqrt(B - (A ** 2))) + ((A ** 2) / ((B - (A ** 2)) ** (3/2)))
+    dSdB = -1 * (A / (2 * (((B - (A ** 2))) ** (3/2))))
+
+    grad = 0.0
+
+    for t in range(1, maxT_input):
+        dAdR = 1 / maxT_input
+        dBdR = 2 * rewards_input[t] / maxT_input
+
+        dRdFt = -1 * miu_input * delta_input * np.sign(F_input[t] -
+                                                       F_input[t-1])
+        dRdFtt = (miu_input * r_input[t]) - dRdFt
+
+        dFtdw = dFt_input[t]
+        dFttdw = dFt_input[t-1]
+
+        grad += (dSdA*dAdR + dSdB*dBdR) * (dRdFt*dFtdw + dRdFtt*dFttdw)
+
+    return grad
+
+
 def traderFunction(X, w):
     """
     Represents the trading position at time t. Holdings at period t.
@@ -121,104 +191,108 @@ def traderFunction(X, w):
     return np.tanh(np.dot(X, w))
 
 
-def updateFt(X, theta, T):
-    """
-    Update holdings at time steps t.
+#
+# WTF???
+#
+# def updateFt(X, theta, T):
+#     """
+#     Update holdings at time steps t.
+#
+#     Parameters
+#     ----------
+#     X, theta : list
+#     T : int
+#
+#     Returns
+#     -------
+#     Updated holdings at time steps t.
+#
+#     """
+#     M = len(theta) - 2
+#     Ft = np.zeros(T+1)
+#
+#     for i in range(1, T+1):
+#         xt = [1]
+#         # xt.extend(X[i-1:i+M-2])
+#         xt.extend(X[i:i+M])
+#         xt.append(Ft[i-1])
+#         Ft[i] = traderFunction(xt, theta)
+#
+#     return Ft
 
-    Parameters
-    ----------
-    X, theta : list
-    T : int
-
-    Returns
-    -------
-    Updated holdings at time steps t.
-
-    """
-    M = len(theta) - 2
-    Ft = np.zeros(T+1)
-
-    for i in range(1, T+1):
-        xt = [1]
-        # xt.extend(X[i-1:i+M-2])
-        xt.extend(X[i:i+M])
-        xt.append(Ft[i-1])
-        Ft[i] = traderFunction(xt, theta)
-
-    return Ft
-
-
-def costFunction(X, Xn, theta):
-    """
-    Calculate costFunction.
-
-    Parameters
-    ----------
-    X, Xn, theta : list
-
-    Returns
-    -------
-    J : float
-    grad : list
-
-    """
-    miu = 1
-    delta = 0.001
-
-    M = len(theta) - 2
-    T = len(X) - M
-
-    Ft = updateFt(Xn, theta, T)
-
-    Ret, sharp = rewardFunction(X, miu, delta, Ft, M)
-
-    J = sharp * -1
-
-    dFt = np.zeros((M+2, T+1))
-    for i in range(1, T+1):
-        xt = [1]
-        # xt.extend(Xn[i-1:i+M-2])
-        xt.extend(Xn[i:i+M])
-        xt.append(Ft[i-1])
-        dFt[:, i] = (1 - traderFunction(xt, theta) ** 2) * \
-                    (xt + theta[-1] * dFt[:, i-1])
-
-    dRtFt = -1. * miu * delta * np.sign(Ft[1:]-Ft[:T])
-
-    dRtFtt = miu * (X[M:M+T] + delta * np.sign(Ft[1:] - Ft[:T]))
-
-    # % prefix = repmat(subs(subs(dSdA,a,A),b,B), T, 1) / T +
-    #            subs(subs(dSdB,a,A),b,B) * 2*Ret/T;
-    #
-    # prefix = repmat((1/(- A^2 + B)^(1/2) + A^2/(B - A^2)^(3/2))/M, M, 1) +
-    #          (-A/(2*(B - A^2)^(3/2))) * 2 * Ret / M
-
-    A = np.sum(Ret) / T
-    B = np.sum(Ret ** 2) / T
-
-    prefix = np.tile((1 / np.sqrt(B - (A ** 2)) +
-                     (A ** 2) / ((B - (A ** 2)) ** (3/2))) / M, (M, 1)) + \
-                    (- A / (2 * (B - (A ** 2)) ** (3/2))) * 2 * Ret / M
-    # print(prefix)
-    # print(prefix.shape)
-
-    # grad = np.sum(np.tile(prefix.T, (M+2, 1)).dot(
-    #                 (np.tile(dRtFt.T, (M+2, 1))).dot(dFt[:, 1:]) +
-    #                 np.tile(dRtFtt.T, (M+2, 1)).dot(dFt[:, :T]), 2))
-
-    # print(np.tile(prefix.T, (M+2, 1)).shape)
-    # print(np.tile(dRtFt.T, (M+2, 1)).dot(dFt[:, 1:].T).shape)
-    # print(np.tile(dRtFtt.T, (M+2, 1)).dot(dFt[:, :T].T).shape)
-
-    # TODO: fix this
-    grad = np.sum(np.tile(prefix.T, (M+2, 1)).dot(
-                    np.tile(dRtFt.T, (M+2, 1)).dot(dFt[:, 1:].T) +
-                    np.tile(dRtFtt.T, (M+2, 1)).dot(dFt[:, :T].T)
-                                                  ), axis=2)
-
-    grad = -1 * grad
-
-    return J, grad
+#
+# WTF???
+#
+# def costFunction(X, Xn, theta):
+#     """
+#     Calculate costFunction.
+#
+#     Parameters
+#     ----------
+#     X, Xn, theta : list
+#
+#     Returns
+#     -------
+#     J : float
+#     grad : list
+#
+#     """
+#     miu = 1
+#     delta = 0.001
+#
+#     M = len(theta) - 2
+#     T = len(X) - M
+#
+#     Ft = updateFt(Xn, theta, T)
+#
+#     Ret, sharp = rewardFunction(X, miu, delta, Ft, M)
+#
+#     J = sharp * -1
+#
+#     dFt = np.zeros((M+2, T+1))
+#     for i in range(1, T+1):
+#         xt = [1]
+#         # xt.extend(Xn[i-1:i+M-2])
+#         xt.extend(Xn[i:i+M])
+#         xt.append(Ft[i-1])
+#         dFt[:, i] = (1 - traderFunction(xt, theta) ** 2) * \
+#                     (xt + theta[-1] * dFt[:, i-1])
+#
+#     dRtFt = -1. * miu * delta * np.sign(Ft[1:]-Ft[:T])
+#
+#     dRtFtt = miu * (X[M:M+T] + delta * np.sign(Ft[1:] - Ft[:T]))
+#
+#     # % prefix = repmat(subs(subs(dSdA,a,A),b,B), T, 1) / T +
+#     #            subs(subs(dSdB,a,A),b,B) * 2*Ret/T;
+#     #
+#     # prefix = repmat((1/(- A^2 + B)^(1/2) + A^2/(B - A^2)^(3/2))/M, M, 1) +
+#     #          (-A/(2*(B - A^2)^(3/2))) * 2 * Ret / M
+#
+#     A = np.sum(Ret) / T
+#     B = np.sum(Ret ** 2) / T
+#
+#     prefix = np.tile((1 / np.sqrt(B - (A ** 2)) +
+#                      (A ** 2) / ((B - (A ** 2)) ** (3/2))) / M, (M, 1)) + \
+#                     (- A / (2 * (B - (A ** 2)) ** (3/2))) * 2 * Ret / M
+#     # print(prefix)
+#     # print(prefix.shape)
+#
+#     # grad = np.sum(np.tile(prefix.T, (M+2, 1)).dot(
+#     #                 (np.tile(dRtFt.T, (M+2, 1))).dot(dFt[:, 1:]) +
+#     #                 np.tile(dRtFtt.T, (M+2, 1)).dot(dFt[:, :T]), 2))
+#
+#     # print(np.tile(prefix.T, (M+2, 1)).shape)
+#     # print(np.tile(dRtFt.T, (M+2, 1)).dot(dFt[:, 1:].T).shape)
+#     # print(np.tile(dRtFtt.T, (M+2, 1)).dot(dFt[:, :T].T).shape)
+#
+#     grad = np.sum(np.tile(prefix.T, (M+2, 1)).dot(
+#                     np.tile(dRtFt.T, (M+2, 1)).dot(dFt[:, 1:].T) +
+#                     np.tile(dRtFtt.T, (M+2, 1)).dot(dFt[:, :T].T)
+#                                                   ), axis=2)
+#
+#     grad = -1 * grad
+#
+#     return J, grad
 
 
 if __name__ == '__main__':
