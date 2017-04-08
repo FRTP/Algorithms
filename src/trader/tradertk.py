@@ -23,14 +23,14 @@ def sharpRatio(Ret):
         return np.mean(Ret) / np.std(Ret)
 
 
-def get_rewards(t_input, r_input, F_input, miu_input, delta_input):
+def get_rewards(t1_input, r_input, F_input, miu_input, delta_input):
     """
     Calculate rewards till time step t_input.
 
     Parameters
     ----------
-    t_input : int
-        Time step.
+    t1_input : int
+        Start-postion time step.
     r_input : list
         List of returns till time step t_input.
     F_input : list
@@ -50,34 +50,38 @@ def get_rewards(t_input, r_input, F_input, miu_input, delta_input):
     """
     ans = [0]
 
-    tmp = miu_input * ((F_input[:t_input-1] * r_input[1:t_input]) -
-                       (delta_input * abs(F_input[1:t_input] -
-                        F_input[:t_input-1])))
+    tmp = miu_input * ((F_input[:-1] * r_input[1+t1_input:len(F_input) +
+                        t1_input]) - (delta_input * abs(F_input[1:] -
+                                                        F_input[:-1])))
+    # tmp = miu_input * ((F_input[:-1] * r_input[1:len(F_input)]) -
+    #                    (delta_input * abs(F_input[1:] -
+    #                     F_input[:-1])))
 
     ans.extend(tmp)
 
-    s_ratio = sharpRatio(ans[:t_input])
+    s_ratio = sharpRatio(ans)
 
     return ans, s_ratio
 
 
-def build_x(maxT_input, M_input, r_input, w_input):
+def build_x_matrix(t1_input, maxT_input, M_input,
+                   r_input, w_input, F_t_1_input):
     """
     Build matrix X of windows x_t. Size of every window is (M_input + 3).
 
     Parameters
     ----------
+    t1_input : int
+        Start-postion time step.
     maxT_input : int
         Maximum time step.
-
     M_input : int
         The number of time series inputs to the trader.
-
     r_input : list
         List of returns.
-
     w_input : list
         Weights.
+    F_t_1_input : float
 
     Returns
     -------
@@ -87,61 +91,97 @@ def build_x(maxT_input, M_input, r_input, w_input):
     """
     X_ans = np.zeros((maxT_input, M_input + 3))
 
-    F_t_1 = 0
-    X_ans[0] = np.concatenate(([1], list(reversed(r_input[:1])),
-                               np.zeros(M_input), [F_t_1]))
+    # TODO: Save previous values of F_{t-1}
+    F_t_1 = F_t_1_input
+    X_ans[0] = np.concatenate(([1], list(reversed(
+               r_input[t1_input:1 + t1_input])), np.zeros(M_input), [F_t_1]))
 
+    # for time_step in range(1, M_input + 1):
+    #     X_ans[time_step] = np.concatenate(([1], list(reversed(
+    #                        r_input[:time_step + 1])),
+    #                        np.zeros(M_input - time_step),
+    #                        [traderFunction(w_input, X_ans[time_step - 1])]))
+    # for time_step in range(M_input + 1, maxT_input):
+    #     X_ans[time_step] = np.concatenate(([1], list(reversed(
+    #                        r_input[time_step - M_input:time_step + 1])),
+    #                        [traderFunction(w_input, X_ans[time_step - 1])]))
     for time_step in range(1, M_input + 1):
         X_ans[time_step] = np.concatenate(([1], list(reversed(
-                           r_input[:time_step + 1])),
+                           r_input[t1_input:t1_input + time_step + 1])),
                            np.zeros(M_input - time_step),
                            [traderFunction(w_input, X_ans[time_step - 1])]))
     for time_step in range(M_input + 1, maxT_input):
         X_ans[time_step] = np.concatenate(([1], list(reversed(
-                           r_input[time_step - M_input:time_step + 1])),
+                           r_input[t1_input+time_step-M_input:
+                                   t1_input+time_step+1])),
                            [traderFunction(w_input, X_ans[time_step - 1])]))
     return X_ans
 
 
-def get_trader_func(X_input, M_input):
+def build_x_vector(t_pred_input, M_input, r_input, F_last_input):
+    return np.concatenate(([1], list(reversed(r_input[t_pred_input -
+                                     M_input:t_pred_input + 1])),
+                          [F_last_input]))
+
+
+def get_trader_func(X_input):
     """
     Last coordinates of X vectors.
 
     """
-    return np.array(X_input)[:, M_input + 2]
+    return np.array(X_input)[:, -1]
 
 
-def get_grad_F_w(maxT_input, X_input, w_input):
+def get_grad_F_w(X_input, w_input):
     """
     Calculate gradient dF/dW.
 
     """
-    dFt = np.zeros((maxT_input, len(X_input[0])))
+    dFt = np.zeros((len(X_input), len(X_input[0])))
     dFt[0] = (1 - (traderFunction(X_input[0], w_input) ** 2)) * X_input[0]
-    for t in range(maxT_input):
-        dFt[t] = ((1 - (traderFunction(X_input[t], w_input) ** 2)) *
-                  (X_input[t] + (w_input[-1] * dFt[-1])))
+    for time_step in range(1, len(X_input)):
+        dFt[time_step] = (1 - (traderFunction(X_input[time_step],
+                                              w_input) ** 2)) * \
+                         (X_input[time_step] + (w_input[-1] * dFt[-1]))
     return dFt
 
+#
+# WTF???
+#
+# def get_grad(maxT_input, M_input, r_input, w_input, miu_input, delta_input):
+#     """
+#     Parameters
+#     ----------
+#
+#     Returns
+#     -------
+#
+#     """
+#     X_f = build_x_matrix(maxT_input, M_input, r_input, w_input)
+#     F_f = get_trader_func(X_f)
+#     Rewards_f, s_ratio_f = get_rewards(r_input, F_f, miu_input, delta_input)
+#     dFt_f = get_grad_F_w(X_f, w_input)
+#     return get_grad_S_w(Rewards_f, r_input, F_f, miu_input, delta_input,
+#                         dFt_f), s_ratio_f
 
-def get_grad_S_w(maxT_input, rewards_input, r_input, F_input,
+
+def get_grad_S_w(t1_input, rewards_input, r_input, F_input,
                  miu_input, delta_input, dFt_input):
     """
     Calculate gradient dS/dW.
 
     Parameters
     ----------
-    maxT_input : int
+    t1_input : int
     rewards_input : list
         List of Rewards.
     r_input : list
         List of returns.
     F_input : list
         List of values of trader function.
-    miu_input : int
-    delta_input : float
     dFt_input : list
         List of gradients dF/dW.
+    miu_input, delta_input : float
 
     Returns
     -------
@@ -149,21 +189,22 @@ def get_grad_S_w(maxT_input, rewards_input, r_input, F_input,
         Calculated gradient.
 
     """
-    A = sum(rewards_input[:maxT_input]) / maxT_input
-    B = sum(np.array(rewards_input[:maxT_input]) ** 2) / maxT_input
+    A = sum(rewards_input) / len(rewards_input)
+    B = sum(np.array(rewards_input) ** 2) / len(rewards_input)
 
     dSdA = (1 / np.sqrt(B - (A ** 2))) + ((A ** 2) / ((B - (A ** 2)) ** (3/2)))
     dSdB = -1 * (A / (2 * (((B - (A ** 2))) ** (3/2))))
 
     grad = 0.0
 
-    for t in range(1, maxT_input):
-        dAdR = 1 / maxT_input
-        dBdR = 2 * rewards_input[t] / maxT_input
+    for t in range(1, len(rewards_input)):
+        dAdR = 1 / len(rewards_input)
+        dBdR = 2 * rewards_input[t] / len(rewards_input)
 
         dRdFt = -1 * miu_input * delta_input * np.sign(F_input[t] -
                                                        F_input[t-1])
-        dRdFtt = (miu_input * r_input[t]) - dRdFt
+        # dRdFtt = (miu_input * r_input[t]) - dRdFt
+        dRdFtt = (miu_input * r_input[t1_input+t]) - dRdFt
 
         dFtdw = dFt_input[t]
         dFttdw = dFt_input[t-1]
