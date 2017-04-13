@@ -169,7 +169,7 @@ def get_grad_F_w(X_input, w_input):
     for time_step in range(1, len(X_input)):
         dFt[time_step] = (1 - (trader_function(X_input[time_step],
                                                w_input) ** 2)) * \
-                         (X_input[time_step] + (w_input[-1] * dFt[-1]))
+                        (X_input[time_step] + (w_input[-1] * dFt[time_step-1]))
     return dFt
 
 
