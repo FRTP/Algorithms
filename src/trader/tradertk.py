@@ -160,11 +160,13 @@ def get_grad_F_w(X_input, w_input):
 
     Returns
     -------
-    dFt : list
-        Calculate gradient dF/dW.
+    dFt : matrix
+        Calculated gradient dF/dW.
 
     """
     dFt = np.zeros(X_input.shape)
+    # Define first dF/dW gradient of output matrix dFt.
+    # Consider F_0 equals 0.
     dFt[0] = (1 - (trader_function(X_input[0], w_input) ** 2)) * X_input[0]
     for time_step in range(1, len(X_input)):
         dFt[time_step] = (1 - (trader_function(X_input[time_step],
