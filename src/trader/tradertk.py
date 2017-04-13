@@ -16,10 +16,13 @@ def sharp_ratio(Ret):
         sharp_ratio at time step t.
 
     """
+
+    EPS = 1e-5
+
     if np.std(Ret) == 0:
         return 0
     else:
-        return np.mean(Ret) / np.std(Ret)
+        return np.mean(Ret) / (np.std(Ret) + EPS)
 
 
 def get_rewards(t1_input, r_input, F_input, miu_input, delta_input):
