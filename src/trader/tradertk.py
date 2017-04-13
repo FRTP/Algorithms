@@ -110,7 +110,7 @@ def build_x_matrix(t1_input, maxT_input, M_input,
 
 def build_x_vector(t_pred_input, M_input, r_input, F_last_input):
     """
-    Build matrix X of windows x_t. Size of every window is (M_input + 3).
+    Build an array - historical window x_t. Its length is (M_input + 3).
 
     Parameters
     ----------
@@ -125,8 +125,8 @@ def build_x_vector(t_pred_input, M_input, r_input, F_last_input):
 
     Returns
     -------
-    X_ans : array of lists
-        Array of windows x_t.
+    list
+        Historical window x_t.
 
     """
     return np.concatenate(([1], list(reversed(r_input[t_pred_input -
@@ -135,7 +135,7 @@ def build_x_vector(t_pred_input, M_input, r_input, F_last_input):
 
 def get_trader_func(X_input):
     """
-    Last coordinates of X vectors.
+    Get only last coordinates of vectors in matrix X_input.
 
     Parameters
     ----------
@@ -143,7 +143,8 @@ def get_trader_func(X_input):
 
     Returns
     -------
-    Values of trader function - the actions of agent.
+    list
+        Values of trader function - the actions of agent.
 
     """
     return np.array(X_input)[:, -1]
@@ -163,7 +164,7 @@ def get_grad_F_w(X_input, w_input):
         Calculate gradient dF/dW.
 
     """
-    dFt = np.zeros((len(X_input), len(X_input[0])))
+    dFt = np.zeros(X_input.shape)
     dFt[0] = (1 - (trader_function(X_input[0], w_input) ** 2)) * X_input[0]
     for time_step in range(1, len(X_input)):
         dFt[time_step] = (1 - (trader_function(X_input[time_step],
@@ -233,7 +234,8 @@ def trader_function(X, w):
 
     Returns
     -------
-    Value of trader_function.
+    float
+        Value of trader_function.
 
     """
     return np.tanh(np.dot(X, w))
