@@ -1,14 +1,14 @@
 import numpy as np
 
 
-def sharp_ratio(Ret):
+def sharp_ratio(rewards):
     """
     Calculate sharp_ratio.
 
     Parameters
     ----------
-    Ret : list
-        List of returns till time t.
+    rewards : list
+        List of rewards till time t.
 
     Returns
     -------
@@ -19,10 +19,10 @@ def sharp_ratio(Ret):
 
     EPS = 1e-5
 
-    if np.std(Ret) == 0:
+    if np.std(rewards) == 0:
         return 0
     else:
-        return np.mean(Ret) / (np.std(Ret) + EPS)
+        return np.mean(rewards) / (np.std(rewards) + EPS)
 
 
 def get_rewards(t1_input, r_input, F_input, miu_input, delta_input):
@@ -90,9 +90,9 @@ def build_x_matrix(t1_input, maxT_input, M_input,
     """
     X_ans = np.zeros((maxT_input, M_input + 3))
 
-    F_t_1 = F_t_1_input
     X_ans[0] = np.concatenate(([1], list(reversed(
-               r_input[t1_input:1 + t1_input])), np.zeros(M_input), [F_t_1]))
+               r_input[t1_input:1 + t1_input])), np.zeros(M_input),
+                                                 [F_t_1_input]))
 
     for time_step in range(1, M_input + 1):
         X_ans[time_step] = np.concatenate(([1], list(reversed(
@@ -150,33 +150,49 @@ def get_trader_func(X_input):
     return np.array(X_input)[:, -1]
 
 
-def get_grad_F_w(X_input, w_input):
+def get_grad_F_w(X_input, w_input, dFdW_last_values):
     """
     Calculate gradient dF/dW.
 
     Parameters
     ----------
     X_input, w_input : list
+    dFdW_last_values : list
+        Gradient from last epoch.
 
     Returns
     -------
-    dFt : matrix
+    dFdW : matrix
         Calculated gradient dF/dW.
 
     """
-    dFt = np.zeros(X_input.shape)
-    # Define first dF/dW gradient of output matrix dFt.
-    # Consider F_0 equals 0.
-    dFt[0] = (1 - (trader_function(X_input[0], w_input) ** 2)) * X_input[0]
+    def numeric_grad(x, w):
+        delta = 1e-5
+        ans = np.zeros(w.shape)
+
+        for i in range(len(w)):
+            tmp = np.zeros(w.shape)
+            tmp[i] = delta
+            ans[i] = (trader_function(x, w + tmp) -
+                      trader_function(x, w - tmp)) / (2 * delta)
+
+        return ans
+
+    dFdW = np.zeros(X_input.shape)
+    # Define first dF/dW gradient of output matrix dFdW.
+    dFdW[0] = (1 - (trader_function(X_input[0], w_input) ** 2)) * \
+              (X_input[0] + (w_input[-1] * dFdW_last_values))
     for time_step in range(1, len(X_input)):
-        dFt[time_step] = (1 - (trader_function(X_input[time_step],
-                                               w_input) ** 2)) * \
-                        (X_input[time_step] + (w_input[-1] * dFt[time_step-1]))
-    return dFt
+        dFdW[time_step] = (1 - (trader_function(X_input[time_step],
+                                                w_input) ** 2)) * \
+                    (X_input[time_step] + (w_input[-1] * dFdW[time_step-1]))
+        # print(max(abs(dFdW[time_step] - numeric_grad(X_input[time_step],
+        #                                              w_input))))
+    return dFdW
 
 
-def get_grad_S_w(t1_input, rewards_input, r_input, F_input,
-                 miu_input, delta_input, dFt_input):
+def get_grad_S_w(t1_input, rewards_input, r_input, F_input, miu_input,
+                 delta_input, dFdW_input, w_input, F_first_value_input):
     """
     Calculate gradient dS/dW.
 
@@ -189,9 +205,10 @@ def get_grad_S_w(t1_input, rewards_input, r_input, F_input,
         List of returns.
     F_input : list
         List of values of trader function.
-    dFt_input : list
+    dFdW_input : list
         List of gradients dF/dW.
     miu_input, delta_input : float
+    w_input : list
 
     Returns
     -------
@@ -216,10 +233,31 @@ def get_grad_S_w(t1_input, rewards_input, r_input, F_input,
                                                        F_input[t-1])
         dRdFtt = (miu_input * r_input[t1_input+t]) - dRdFt
 
-        dFtdw = dFt_input[t]
-        dFttdw = dFt_input[t-1]
+        dFtdw = dFdW_input[t]
+        dFttdw = dFdW_input[t-1]
 
         grad += (dSdA*dAdR + dSdB*dBdR) * (dRdFt*dFtdw + dRdFtt*dFttdw)
+
+    def numeric_grad():
+
+        def help_func(w):
+            X = build_x_matrix(t1_input, len(rewards_input), len(dFdW_input[0])
+                               - 3, r_input, w, F_first_value_input)
+            F = get_trader_func(X)
+            rewards, s_ratio = get_rewards(t1_input, r_input, F,
+                                           miu_input, delta_input)
+            return s_ratio
+
+        delta = 1e-10
+        ans = np.zeros(w_input.shape)
+        for i in range(len(w_input)):
+            tmp = np.zeros(w_input.shape)
+            tmp[i] = delta
+            ans[i] = (help_func(w_input + tmp) -
+                      help_func(w_input - tmp)) / (2 * delta)
+        return ans
+
+    # print(max(abs(numeric_grad() - grad)))
 
     return grad
 
