@@ -241,8 +241,9 @@ def get_grad_S_w(t1_input, rewards_input, r_input, F_input, miu_input,
     def numeric_grad():
 
         def help_func(w):
-            X = build_x_matrix(t1_input, len(rewards_input), len(dFdW_input[0])
-                               - 3, r_input, w, F_first_value_input)
+            X = build_x_matrix(t1_input, len(rewards_input),
+                               len(dFdW_input[0]) - 3, r_input, w,
+                               F_first_value_input)
             F = get_trader_func(X)
             rewards, s_ratio = get_rewards(t1_input, r_input, F,
                                            miu_input, delta_input)
