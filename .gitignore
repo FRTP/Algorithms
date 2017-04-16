@@ -3,3 +3,7 @@
 
 # Data directory
 data/**
+
+*/*.ipynb_checkpoints/
+*/*.DS_Store
+**/*.pyc
