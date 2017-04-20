@@ -1,6 +1,9 @@
 # JetBrains IDEA local directory
 .idea/
 
+# Data directory
+data/**
+
 # Twitter data directory
 src/twitter/data/
 src/twitter/dumps/
@@ -10,3 +13,6 @@ src/twitter/dumps/
 
 #Python trash
 **/__pycache__/
+*/*.DS_Store
+**/*.pyc
+
