@@ -9,7 +9,7 @@ model_builder = {
 }
 
 
-def generate_features(tweets=None, data_file=None, model=None):
+def generate_features(tweets=None, data_file=None, model="baseline"):
     if isinstance(model, str):
         model = model_builder[model]()
     if tweets is None:

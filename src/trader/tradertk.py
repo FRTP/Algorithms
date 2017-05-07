@@ -270,4 +270,4 @@ def trader_function(X, w):
 
 
 if __name__ == '__main__':
-    assert(0)
+    assert 0

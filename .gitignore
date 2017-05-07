@@ -2,7 +2,7 @@
 .idea/
 
 # Data directory
-data/**
+src/data/
 
 # Twitter data directory
 src/twitter/data/
@@ -16,3 +16,4 @@ src/twitter/dumps/
 */*.DS_Store
 **/*.pyc
 
+src/records/
