@@ -8,33 +8,6 @@ import pandas as pd
 import os
 
 
-# class BalanceReward:
-#     def __init__(self, transaction_cost=0.0006):
-#         self.transaction_cost = transaction_cost
-#         self.balance = 0
-#         self.prices = None
-#
-#     def update_balance(self, new_prices, action):
-#         self.balance += np.sum(action * (
-#             new_prices - self.prices)) - self.transaction_cost * np.abs(
-#             action)
-#
-#     def __call__(self, new_prices, action):
-#         action -= 1
-#         if self.prices is None:
-#             self.prices = new_prices
-#             return 0
-#         old_balance = self.balance
-#         self.update_balance(new_prices, action)
-#         self.prices = new_prices
-#
-#         return self.balance - old_balance
-#
-#
-# class SharpRatioReward(BalanceReward):
-#     pass
-
-
 def suffix_mapper(suffix, ignore=None):
     if ignore is None:
         ignore = []

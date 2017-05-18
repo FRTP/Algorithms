@@ -1,1 +1,1 @@
-from src.envs.stock import StockEnv
+from envs.stock import StockEnv

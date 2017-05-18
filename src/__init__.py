@@ -1,10 +1,12 @@
+import sys
+
 from gym.envs.registration import register
+sys.path.insert(0, '../../Framework/src/')
 
 register(
     id='FrontoPolarStocks-v0',
     entry_point='src.envs:StockEnv',
     kwargs={
-        'file_name': 'data/yah_stocks/EA.csv',
         'reward_type': 'balance',
         'use_twitter': False
     },
