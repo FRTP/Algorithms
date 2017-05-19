@@ -48,8 +48,9 @@ def get_rewards(time_pos, returns, Ft, miu, delta):
     """
     ans = [0]
 
-    tmp = miu * ((Ft[:-1] * returns[1 + time_pos:len(Ft) + time_pos]) -
-                 (delta * abs(Ft[1:] - Ft[:-1])))
+    tmp = miu * (
+        (Ft[:-1] * returns[1 + time_pos:len(Ft) + time_pos]) - (
+            delta * abs(Ft[1:] - Ft[:-1])))
 
     ans.extend(tmp)
 
@@ -84,20 +85,24 @@ def build_x_matrix(time_pos, window_size, M, returns, w, Ft_prev):
     """
     X = np.zeros((window_size, M + 3))
 
-    X[0] = np.concatenate(([1], list(reversed(returns[time_pos:1 + time_pos])),
-                           np.zeros(M), [Ft_prev]))
+    X[0] = np.concatenate(
+        ([1], list(reversed(returns[time_pos:1 + time_pos])),
+         np.zeros(M), [Ft_prev]))
 
     for time_step in range(1, M + 1):
         X[time_step] = np.concatenate(([1], list(reversed(
-                           returns[time_pos:time_pos + time_step + 1])),
-                           np.zeros(M - time_step),  # Padding with zeros.
-                           [trader_function(w, X[time_step - 1])]))
+            returns[time_pos:time_pos + time_step + 1])),
+                                       np.zeros(M - time_step),
+                                       # Padding with zeros.
+                                       [trader_function(w, X[
+                                           time_step - 1])]))
     # There is one difference. In the code above zeros are added.
     for time_step in range(M + 1, window_size):
         X[time_step] = np.concatenate(([1], list(reversed(
-                           returns[time_pos + time_step - M:
-                                   time_pos + time_step + 1])),
-                           [trader_function(w, X[time_step - 1])]))
+            returns[time_pos + time_step - M:
+            time_pos + time_step + 1])),
+                                       [trader_function(w, X[
+                                           time_step - 1])]))
     return X
 
 
@@ -123,7 +128,7 @@ def build_x_vector(time_pos, M, returns, Ft_last):
 
     """
     return np.concatenate(([1], list(reversed(
-                           returns[time_pos - M:time_pos + 1])), [Ft_last]))
+        returns[time_pos - M:time_pos + 1])), [Ft_last]))
 
 
 def get_trader_func(X):
@@ -159,6 +164,7 @@ def get_grad_F_w(X, w, dFdW_last):
         Calculated gradient dF/dW.
 
     """
+
     def numeric_grad(x):
         d = 1e-5
         ans = np.zeros(w.shape)
@@ -173,12 +179,14 @@ def get_grad_F_w(X, w, dFdW_last):
     dFdW = np.zeros(X.shape)
     numeric_dFdW = np.zeros(X.shape)
     # Define first dF/dW gradient of output matrix dFdW.
-    dFdW[0] = (1 - (trader_function(X[0], w) ** 2)) * (X[0] +
-                                                       (w[-1] * dFdW_last))
+    dFdW[0] = (1 - (trader_function(X[0], w) ** 2)) * (
+        X[0] + (w[-1] * dFdW_last))
     numeric_dFdW[0] = numeric_grad(X[0])
     for time_step in range(1, len(X)):
-        dFdW[time_step] = (1 - (trader_function(X[time_step], w) ** 2)) * \
-                          (X[time_step] + (w[-1] * dFdW[time_step-1]))
+        dFdW[time_step] = (1 - (
+            trader_function(X[time_step], w) ** 2)) * \
+                          (X[time_step] + (
+                              w[-1] * dFdW[time_step - 1]))
         numeric_dFdW[time_step] = numeric_grad(X[time_step])
     return numeric_dFdW, dFdW
 
@@ -212,8 +220,9 @@ def get_grad_S_w(time_pos, rewards, returns, Ft, miu, delta, dFdW, w,
     A = sum(rewards) / len(rewards)
     B = sum(np.array(rewards) ** 2) / len(rewards)
 
-    dSdA = (1 / np.sqrt(B - (A ** 2))) + ((A ** 2) / ((B - (A ** 2)) ** (3/2)))
-    dSdB = -1 * (A / (2 * (((B - (A ** 2))) ** (3/2))))
+    dSdA = (1 / np.sqrt(B - (A ** 2))) + (
+        (A ** 2) / ((B - (A ** 2)) ** (3 / 2)))
+    dSdB = -1 * (A / (2 * (((B - (A ** 2))) ** (3 / 2))))
 
     grad = 0.0
 
@@ -222,18 +231,20 @@ def get_grad_S_w(time_pos, rewards, returns, Ft, miu, delta, dFdW, w,
         dAdR = 1 / len(rewards)
         dBdR = 2 * rewards[t] / len(rewards)
 
-        dRdFt = -1 * miu * delta * np.sign(Ft[t] - Ft[t-1])
-        dRdFtt = (miu * returns[time_pos+t]) - dRdFt
+        dRdFt = -1 * miu * delta * np.sign(Ft[t] - Ft[t - 1])
+        dRdFtt = (miu * returns[time_pos + t]) - dRdFt
 
         dFtdw = dFdW[t]
-        dFttdw = dFdW[t-1]
+        dFttdw = dFdW[t - 1]
 
-        grad += (dSdA*dAdR + dSdB*dBdR) * (dRdFt*dFtdw + dRdFtt*dFttdw)
+        grad += (dSdA * dAdR + dSdB * dBdR) * (
+            dRdFt * dFtdw + dRdFtt * dFttdw)
 
     def numeric_grad():
 
         def help_func(w_tmp):
-            X = build_x_matrix(time_pos, len(rewards), len(dFdW[0]) - 3,
+            X = build_x_matrix(time_pos, len(rewards),
+                               len(dFdW[0]) - 3,
                                returns, w_tmp, Ft_first)
             F = get_trader_func(X)
             _, s_ratio = get_rewards(time_pos, returns, F, miu, delta)
@@ -244,7 +255,8 @@ def get_grad_S_w(time_pos, rewards, returns, Ft, miu, delta, dFdW, w,
         for i in range(len(w)):
             tmp = np.zeros(w.shape)
             tmp[i] = d
-            ans[i] = (help_func(w + tmp) - help_func(w - tmp)) / (2 * d)
+            ans[i] = (help_func(w + tmp) - help_func(w - tmp)) / (
+                2 * d)
         return ans
 
     return numeric_grad(), grad

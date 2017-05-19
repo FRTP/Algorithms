@@ -4,16 +4,17 @@ import theano.tensor.shared_randomstreams as random_streams
 from agentnet.resolver import BaseResolver
 
 
-# behavior is similar to agentnet.resolver.ProbabilisticResolver
-# but allows multidimentional output
 class MultiProbabilisticResolver(BaseResolver):
     """
     instance, that:
         - determines which action should be taken given policy
         - samples actions with probabilities given by input layer
+        - behavior is similar to agentnet.resolver.ProbabilisticResolver but allows multidimentional output
+
     """
 
-    def __init__(self, incoming, assume_normalized=False, seed=1234, output_dtype='int32',
+    def __init__(self, incoming, assume_normalized=False, seed=1234,
+                 output_dtype='int32',
                  name='ProbabilisticResolver'):
         """
         :param incoming: a lasagne layer that outputs action probability vectors
@@ -34,13 +35,13 @@ class MultiProbabilisticResolver(BaseResolver):
         :type name: string
         """
 
-        # probas float[2] - probability of random and optimal action respectively
-
         self.assume_normalized = assume_normalized
 
         self.rng = random_streams.RandomStreams(seed)
 
-        super(MultiProbabilisticResolver, self).__init__(incoming, name=name, output_dtype=output_dtype)
+        super(MultiProbabilisticResolver, self).__init__(incoming,
+                                                         name=name,
+                                                         output_dtype=output_dtype)
 
     def get_output_for(self, policy, greedy=False, **kwargs):
         """
@@ -53,22 +54,26 @@ class MultiProbabilisticResolver(BaseResolver):
         """
         if greedy:
             # greedy branch
-            chosen_action_ids = T.argmax(policy, axis=-1).astype(self.output_dtype)
+            chosen_action_ids = T.argmax(policy, axis=-1).astype(
+                self.output_dtype)
 
         else:
 
             if self.assume_normalized:
                 probas = policy
             else:
-                probas = policy / T.sum(policy, axis=-1, keepdims=True)
+                probas = policy / T.sum(policy, axis=-1,
+                                        keepdims=True)
 
             # p1, p1+p2, p1+p2+p3, ... 1
             cum_probas = T.cumsum(probas, axis=-1)
 
             rnd_shape = T.stack([*policy.shape[:-1], 1])
 
-            batch_randomness = self.rng.uniform(low=0., high=1., size=rnd_shape)
-            batch_randomness = T.repeat(batch_randomness, policy.shape[-1] - 1, axis=-1)
+            batch_randomness = self.rng.uniform(low=0., high=1.,
+                                                size=rnd_shape)
+            batch_randomness = T.repeat(batch_randomness,
+                                        policy.shape[-1] - 1, axis=-1)
 
             # idea: to compute the chosen action we count how many cumulative probabilities are
             # less than the random number [0,1].
@@ -76,9 +81,12 @@ class MultiProbabilisticResolver(BaseResolver):
             # by definition (never being less than random[0,1]), but it can be less due to
             # inaccurate float32 computation, causing algorithm to pick action id = (n_actions)+1
             # which results in IndexError
-            chosen_action_ids = T.sum((batch_randomness > cum_probas[:, :, :-1]), axis=-1, dtype=self.output_dtype)
+            chosen_action_ids = T.sum(
+                (batch_randomness > cum_probas[:, :, :-1]), axis=-1,
+                dtype=self.output_dtype)
 
         return chosen_action_ids
+
     def get_output_shape_for(self, input_shape):
         """returns shape of layer output"""
         return input_shape[:-1]

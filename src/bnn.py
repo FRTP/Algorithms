@@ -1,4 +1,5 @@
-# a simplified version of https://gist.github.com/ferrine/a003ace716c278ab87669f2fbd37727b
+# a simplified version of
+# https://gist.github.com/ferrine/a003ace716c278ab87669f2fbd37727b
 import numpy as np
 from functools import wraps
 
@@ -45,7 +46,7 @@ def bbpwrap(approximation=NormalApproximation()):
             @wraps(add_param)
             def wrapped(self, spec, shape, name=None, **tags):
                 # we should take care about some user specification
-                # to avoid bbp hook just set tags['variational'] = True
+                # to avoid bbp hook set tags['variational'] = True
                 if not tags.get('trainable', True) or tags.get(
                         'variational', False):
                     return add_param(self, spec, shape, name, **tags)
@@ -69,7 +70,7 @@ def sample_output(output_layer, input_dict,
                   n_samples=10,
                   aggregate=lambda v: T.mean(v, axis=1),
                   **kwargs):
-    """get several samples from neural network and aggregate over them"""
+    """get samples from neural network and aggregate over them"""
     repeated_input_dict = {
         layer: T.repeat(inp, n_samples, axis=0)
         for layer, inp in input_dict.items()

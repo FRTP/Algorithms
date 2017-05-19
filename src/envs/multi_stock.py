@@ -4,7 +4,6 @@ from gym.utils import seeding
 from gym.envs.classic_control import rendering
 import numpy as np
 import pandas as pd
-# from environment.Environment import Environment
 import os
 
 
@@ -100,7 +99,8 @@ class StockEnv(gym.Env):
 
         transaction_fee = StockEnv.FEE_COEF * np.sum(
             np.abs(action * old_prices))
-        reward = np.sum(self.assets_count * (new_prices - old_prices)) - transaction_fee
+        reward = np.sum(self.assets_count * (
+            new_prices - old_prices)) - transaction_fee
 
         balance = self.balance_history[-1] + reward
         self.balance_history.append(balance)

@@ -1,17 +1,13 @@
 import numpy as np
 
 import lasagne
-from lasagne.layers import InputLayer, DenseLayer, ReshapeLayer, \
-    NonlinearityLayer, batch_norm, dropout
-
-# from agentnet.resolver import ProbabilisticResolver
+from lasagne.layers import InputLayer, DenseLayer, ReshapeLayer
 
 from utils.multi_probabilistic import MultiProbabilisticResolver
 
 from agentnet.agent import Agent
 
 
-# image observation at current tick goes here, shape = (sample_i,x,y,color)
 def build_agent(action_shape, state_shape):
     observation_layer = InputLayer((None, *state_shape))
 

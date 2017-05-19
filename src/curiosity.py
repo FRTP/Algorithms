@@ -62,7 +62,10 @@ def compile_vime_reward(l_prediction, l_prev_states, l_actions,
                             (pred - real) ** 2),
                         n_samples=1,
                         delta=0.01, **kwargs):
-    """compiles a function that predicts vime reward for each state in a batch"""
+    """
+    compiles a function that predicts vime reward for each state
+    in a batch
+    """
     prev_states = T.matrix("previous states")
     actions = T.ivector("actions")
     next_states = T.matrix("next states")
