@@ -1,3 +1,5 @@
+agent
+lasagne
 cloudpickle==0.2.2
 nltk==3.2.2
 numpy==1.11.3

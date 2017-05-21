@@ -136,7 +136,7 @@ class StockEnv(gym.Env):
 
         balance = self.balance_history[-1]
 
-        radius = np.log(30 + np.abs(balance))
+        radius = 10 * np.log(30 + np.abs(balance))
 
         budget_circle = rendering.make_circle(radius)
         if balance > 0:

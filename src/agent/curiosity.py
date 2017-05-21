@@ -53,7 +53,7 @@ def get_r_vime_on_state(pred_weights, pred_loss, delta=0.01):
 
 
 import lasagne
-from bnn import sample_output
+from agent.bnn_utils import sample_output
 
 
 def compile_vime_reward(l_prediction, l_prev_states, l_actions,

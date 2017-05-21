@@ -3,7 +3,7 @@ import pandas as pd
 from time import time
 from sklearn.model_selection import cross_val_score, StratifiedKFold
 
-from src.twitter.models.word2vec_model import build_model
+from twitter.models.word2vec_model import build_model
 # from models.baseline_model import build_model
 
 import logging
