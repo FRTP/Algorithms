@@ -10,11 +10,13 @@ from agent.curiosity import compile_vime_reward
 
 
 @bbpwrap(NormalApproximation())
-class BayesDenseLayer(DenseLayer): pass
+class BayesDenseLayer(DenseLayer):
+    pass
 
 
 @bbpwrap(NormalApproximation())
-class BayesEmbLayer(EmbeddingLayer): pass
+class BayesEmbLayer(EmbeddingLayer):
+    pass
 
 
 # FIXME : cant see class attribute
@@ -42,22 +44,27 @@ class BNN:
 
         print(l_concat.output_shape)
 
-        #ERROR HERE
-        l_dense = BayesDenseLayer(l_concat, num_units=50,
-                                  nonlinearity=lasagne.nonlinearities.tanh)
+        # ERROR HERE
+        l_dense = BayesDenseLayer(
+            l_concat,
+            num_units=50,
+            nonlinearity=lasagne.nonlinearities.tanh)
 
         state_size = state_shape[0]
-        l_out = BayesDenseLayer(l_dense, num_units=state_size,
-                                nonlinearity=None)
+        l_out = BayesDenseLayer(
+            l_dense,
+            num_units=state_size,
+            nonlinearity=None)
 
         params = lasagne.layers.get_all_params(l_out, trainable=True)
-        ###training###
+
+        # training
         pred_states = lasagne.layers.get_output(l_out)
         next_states = T.matrix("next states")
         mse = lasagne.objectives.squared_error(pred_states,
                                                next_states).mean()
 
-        # replace logposterior with simple regularization on rho cuz we're lazy
+        # logposterior with simple regularization on rho cuz we R lazy
         reg = sum(
             [lasagne.objectives.squared_error(rho, target_rho).mean()
              for rho in
@@ -71,7 +78,7 @@ class BNN:
             [l_state.input_var, l_action.input_var, next_states],
             loss, updates=updates)
 
-        ###sample random sessions from pool###
+        # sample random sessions from pool
         observations, = replay.observations
         actions, = replay.actions
         observations_flat = observations[:, :-1].reshape(
@@ -79,22 +86,24 @@ class BNN:
         actions_flat = actions[:, :-1].reshape((-1,))
         next_observations_flat = observations[:, 1:].reshape(
             (-1,) + tuple(observations.shape[2:]))
-        self.sample_from_pool = theano.function([],
-                                                [observations_flat,
-                                                 actions_flat,
-                                                 next_observations_flat])
+        self.sample_from_pool = theano.function(
+            [],
+            [observations_flat,
+             actions_flat,
+             next_observations_flat])
 
-        ###curiosity reward### aka KL(qnew,qold)
-        self.get_vime_reward_elwise = compile_vime_reward(l_out,
-                                                          l_state,
-                                                          l_action,
-                                                          params,
-                                                          n_samples=10)
+        # curiosity reward### aka KL(qnew,qold)
+        self.get_vime_reward_elwise = compile_vime_reward(
+            l_out,
+            l_state,
+            l_action,
+            params,
+            n_samples=10)
 
         self.vime_reward_ma = 10.
 
     def add_vime_reward(self, observations, actions, rewards,
-                        is_alive, h0=0):
+                        is_alive, h0=None):
         assert isinstance(observations, np.ndarray)
         observations_flat = observations[:, :-1].reshape(
             (-1,) + observations.shape[2:]).astype('float32')
@@ -102,15 +111,18 @@ class BNN:
         next_observations_flat = observations[:, 1:].reshape(
             (-1,) + observations.shape[2:]).astype('float32')
 
-        vime_rewards = self.get_vime_reward_elwise(observations_flat,
-                                                   actions_flat,
-                                                   next_observations_flat)
+        vime_rewards = self.get_vime_reward_elwise(
+            observations_flat,
+            actions_flat,
+            next_observations_flat)
         vime_rewards = np.concatenate(
             [vime_rewards.reshape(rewards[:, :-1].shape),
              np.zeros_like(rewards[:, -1:]), ], axis=1)
         # normalize by moving average
-        self.vime_reward_ma = 0.99 * self.vime_reward_ma + 0.01 * vime_rewards.mean()
+        self.vime_reward_ma = \
+            0.99 * self.vime_reward_ma + 0.01 * vime_rewards.mean()
 
-        surrogate_rewards = rewards + self.curiosity / self.vime_reward_ma * vime_rewards
+        surrogate_rewards = rewards + \
+            self.curiosity / self.vime_reward_ma * vime_rewards
         return (
             observations, actions, surrogate_rewards, is_alive, h0)

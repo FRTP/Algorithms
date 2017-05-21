@@ -3,6 +3,9 @@ computes the curiosity reward batch-wise
 """
 import theano
 import theano.tensor as T
+import lasagne
+
+from agent.bnn_utils import sample_output
 
 
 def extract_params(bnn_weights, pred_loss, delta=0.01):
@@ -52,10 +55,6 @@ def get_r_vime_on_state(pred_weights, pred_loss, delta=0.01):
         *extract_params(pred_weights, pred_loss, delta=delta))
 
 
-import lasagne
-from agent.bnn_utils import sample_output
-
-
 def compile_vime_reward(l_prediction, l_prev_states, l_actions,
                         weights,
                         get_loss=lambda pred, real: T.mean(
@@ -70,25 +69,27 @@ def compile_vime_reward(l_prediction, l_prev_states, l_actions,
     actions = T.ivector("actions")
     next_states = T.matrix("next states")
     if n_samples == 1:
-        get_bnn = lambda state, action: lasagne.layers.get_output(
-            l_prediction,
-            inputs={l_prev_states: state[None, :],
-                    l_actions: action[None]}, **kwargs)
+        def get_bnn(state, action):
+            return lasagne.layers.get_output(
+                l_prediction,
+                inputs={l_prev_states: state[None, :],
+                        l_actions: action[None]},
+                **kwargs)
     else:
-        get_bnn = lambda state, action: sample_output(
-            l_prediction,
-            input_dict={
-                l_prev_states: state[None, :],
-                l_actions: action[None]},
-            n_samples=n_samples,
-            **kwargs)
+        def get_bnn(state, action):
+            sample_output(
+                l_prediction,
+                input_dict={
+                    l_prev_states: state[None, :],
+                    l_actions: action[None]},
+                n_samples=n_samples,
+                **kwargs)
 
     vime_reward_per_state, auto_updates = theano.map(
-        lambda s, a, s_next: get_r_vime_on_state(weights,
-                                                 get_loss(
-                                                     get_bnn(s, a),
-                                                     s_next),
-                                                 delta),
+        lambda s, a, s_next: get_r_vime_on_state(
+            weights,
+            get_loss(get_bnn(s, a), s_next),
+            delta),
         sequences=[prev_states, actions, next_states])
 
     return theano.function([prev_states, actions, next_states],

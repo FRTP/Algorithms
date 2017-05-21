@@ -16,21 +16,25 @@ def build_agent(action_shape, state_shape):
 
     # a layer that predicts Qvalues
 
-    policy_layer_flattened = DenseLayer(net,
-                                        num_units=np.prod(action_shape),
-                                        nonlinearity=lasagne.nonlinearities.softmax,
-                                        name="q-evaluator layer")
+    policy_layer_flattened = DenseLayer(
+        net,
+        num_units=np.prod(action_shape),
+        nonlinearity=lasagne.nonlinearities.softmax,
+        name="q-evaluator layer")
 
-    policy_layer = ReshapeLayer(policy_layer_flattened,
-                                ([0], *action_shape))
+    policy_layer = ReshapeLayer(
+        policy_layer_flattened,
+        ([0], *action_shape)
+    )
 
-    V_layer = DenseLayer(net, 1, nonlinearity=None,
-                         name="state values")
+    V_layer = DenseLayer(
+        net, 1, nonlinearity=None, name="state values")
 
     # Pick actions at random proportionally to te probabilities
-    action_layer = MultiProbabilisticResolver(policy_layer,
-                                              name="e-greedy action picker",
-                                              assume_normalized=True)
+    action_layer = MultiProbabilisticResolver(
+        policy_layer,
+        name="e-greedy action picker",
+        assume_normalized=True)
 
     # all together
     agent = Agent(observation_layers=observation_layer,
