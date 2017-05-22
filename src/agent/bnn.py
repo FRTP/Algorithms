@@ -4,8 +4,7 @@ import theano.tensor as T
 import lasagne
 from lasagne.layers import InputLayer, DenseLayer, EmbeddingLayer
 
-from agent.bnn_utils import bbpwrap, NormalApproximation, \
-    sample_output
+from agent.bnn_utils import bbpwrap, NormalApproximation
 from agent.curiosity import compile_vime_reward
 
 
@@ -19,10 +18,6 @@ class BayesEmbLayer(EmbeddingLayer):
     pass
 
 
-# FIXME : cant see class attribute
-# target_rho = 1
-
-
 class BNN:
     def __init__(self, state_shape, action_shape, action_emb_shape,
                  replay):
@@ -32,28 +27,37 @@ class BNN:
         l_state = InputLayer((None, *state_shape),
                              name='state var')
         l_action = InputLayer((None, *action_shape),
-                              input_var=T.imatrix())
+                              input_var=T.imatrix(),
+                              name='actions var')
 
+
+        # HUGE FIX NEEDED HERE
         l_action_emb = BayesEmbLayer(l_action, *action_emb_shape)
 
         print(l_action_emb.output_shape)
 
         l_action_emb_flat = lasagne.layers.flatten(l_action_emb)
 
-        l_concat = lasagne.layers.concat([l_action_emb_flat, l_state])
+        # l_action_emb_flat = BayesEmbLayer(
+        #     l_action,
+        #     input_size=action_shape[0],
+        #     output_size=np.prod(action_emb_shape))
 
-        print(l_concat.output_shape)
+        print(l_state.output_shape)
+        print(l_action_emb_flat.output_shape)
+
+        l_concat = lasagne.layers.concat([l_action_emb_flat, l_state])
 
         # ERROR HERE
         l_dense = BayesDenseLayer(
             l_concat,
             num_units=50,
-            nonlinearity=lasagne.nonlinearities.tanh)
+            nonlinearity=lasagne.nonlinearities.tanh,
+            name='dense 1')
 
-        state_size = state_shape[0]
         l_out = BayesDenseLayer(
             l_dense,
-            num_units=state_size,
+            num_units=state_shape[0],
             nonlinearity=None)
 
         params = lasagne.layers.get_all_params(l_out, trainable=True)
@@ -103,7 +107,7 @@ class BNN:
         self.vime_reward_ma = 10.
 
     def add_vime_reward(self, observations, actions, rewards,
-                        is_alive, h0=None):
+                        is_alive, h0=0):
         assert isinstance(observations, np.ndarray)
         observations_flat = observations[:, :-1].reshape(
             (-1,) + observations.shape[2:]).astype('float32')

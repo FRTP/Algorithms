@@ -13,7 +13,7 @@ class MultiProbabilisticResolver(BaseResolver):
 
     def __init__(self, incoming, assume_normalized=False, seed=1234,
                  output_dtype='int32',
-                 name='ProbabilisticResolver'):
+                 name='MultiProbabilisticResolver'):
 
         self.assume_normalized = assume_normalized
 

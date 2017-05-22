@@ -77,7 +77,7 @@ def compile_vime_reward(l_prediction, l_prev_states, l_actions,
                 **kwargs)
     else:
         def get_bnn(state, action):
-            sample_output(
+            return sample_output(
                 l_prediction,
                 input_dict={
                     l_prev_states: state[None, :],
