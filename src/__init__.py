@@ -5,7 +5,7 @@ sys.path.insert(0, '../../Framework/src/')
 
 register(
     id='FrontoPolarStocks-v0',
-    entry_point='src.envs:StockEnv',
+    entry_point='src.envs.stock:StockEnv',
     kwargs={
         'reward_type': 'balance',
         'use_twitter': False

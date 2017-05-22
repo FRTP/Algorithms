@@ -30,7 +30,6 @@ class BNN:
                               input_var=T.imatrix(),
                               name='actions var')
 
-
         # HUGE FIX NEEDED HERE
         l_action_emb = BayesEmbLayer(l_action, *action_emb_shape)
 
