@@ -1,0 +1,14 @@
+agent
+lasagne
+cloudpickle
+nltk
+numpy
+pandas
+pickleshare
+psutil
+scikit-learn
+smart-open
+tensorflow
+Theano
+gensim
+matplotlib
