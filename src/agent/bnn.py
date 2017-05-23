@@ -30,10 +30,8 @@ class BNN:
                               input_var=T.imatrix(),
                               name='actions var')
 
-        # HUGE FIX NEEDED HERE
+        # TODO: HUGE FIX NEEDED HERE
         l_action_emb = BayesEmbLayer(l_action, *action_emb_shape)
-
-        print(l_action_emb.output_shape)
 
         l_action_emb_flat = lasagne.layers.flatten(l_action_emb)
 
@@ -42,12 +40,13 @@ class BNN:
         #     input_size=action_shape[0],
         #     output_size=np.prod(action_emb_shape))
 
-        print(l_state.output_shape)
-        print(l_action_emb_flat.output_shape)
-
         l_concat = lasagne.layers.concat([l_action_emb_flat, l_state])
 
-        # ERROR HERE
+        print("A_emb: ", l_action_emb.output_shape)
+        print("S: ", l_state.output_shape)
+        print("A_emb_flat: ", l_action_emb_flat.output_shape)
+        print("Concat: ", l_concat.output_shape)
+
         l_dense = BayesDenseLayer(
             l_concat,
             num_units=50,
